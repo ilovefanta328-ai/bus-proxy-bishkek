@@ -11,12 +11,24 @@ export default async function handler(req, res) {
   const busNumber = req.query.bus || '37';
 
   try {
+    // Шаг 1: Сначала делаем GET-запрос на страницу карты, чтобы получить куки сессии
+    const pageResponse = await fetch('https://e-meria.kg/transport-map', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+
+    // Вытаскиваем куки (Set-Cookie) из ответа
+    const cookies = pageResponse.headers.get('set-cookie') || '';
+
+    // Шаг 2: Делаем основной запрос за маркерами автобусов, передавая полученные куки
     const response = await fetch('https://e-meria.kg/transport-map/markers', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36',
+        'Cookie': cookies,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Referer': 'https://e-meria.kg/transport-map'
       },
       body: JSON.stringify({ "bus": busNumber, "type": 2 })
@@ -25,6 +37,7 @@ export default async function handler(req, res) {
     const data = await response.json();
     res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Ошибка сервера', details: error.message });
+    res.status(500).json({ error: 'Ошибка прокси', details: error.message });
   }
-}
+          }
+                                 
